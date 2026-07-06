@@ -11,7 +11,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "index.html"
 QUESTIONS = ROOT / "data" / "questions.js"
 ICON = ROOT / "icon.svg"
-OUTPUT = ROOT / "dist" / "电力交易员高级工刷题_单文件版_v1.html"
+OUTPUT = ROOT / "dist" / "电力交易员高级工技师刷题_单文件版_v2.html"
 
 
 def main() -> None:

@@ -1,3 +1,5 @@
 .playwright-cli/
 output/
 .DS_Store
+__pycache__/
+dist/github_pages_upload_*/

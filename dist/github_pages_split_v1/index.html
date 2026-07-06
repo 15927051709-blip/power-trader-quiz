@@ -5,8 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#14213d">
   <title>电力交易员高级工刷题</title>
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IueUteWKm+S6pOaYk+WRmOWIt+mimCI+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMTIiIGZpbGw9IiMxNDIxM2QiLz4KICA8cGF0aCBkPSJNMTM4IDExOGgyMzZjMjAgMCAzNiAxNiAzNiAzNnYyNDBjMCAyMC0xNiAzNi0zNiAzNkgxMzhjLTIwIDAtMzYtMTYtMzYtMzZWMTU0YzAtMjAgMTYtMzYgMzYtMzZaIiBmaWxsPSIjZjhmNGU4Ii8+CiAgPHBhdGggZD0iTTE1NCAxODRoMjA0TTE1NCAyNDZoMTMyTTE1NCAzMDhoMTc4IiBzdHJva2U9IiMxNDIxM2QiIHN0cm9rZS13aWR0aD0iMjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0zMTYgMjIyIDI2MCAzMzJoNjJsLTIyIDcyIDgyLTEyNGgtNjJsMjgtNThoLTMyWiIgZmlsbD0iI2ZjYTMxMSIvPgogIDxjaXJjbGUgY3g9IjM3OCIgY3k9IjE1MCIgcj0iMzQiIGZpbGw9IiMyYTlkOGYiLz4KPC9zdmc+Cg==" type="image/svg+xml">
   <style>
     :root {
       color-scheme: light;
@@ -458,14 +457,14 @@
   <div class="app">
     <header class="topbar">
       <div class="brand">
-        <img src="icon.svg" alt="">
+        <img src="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIiByb2xlPSJpbWciIGFyaWEtbGFiZWw9IueUteWKm+S6pOaYk+WRmOWIt+mimCI+CiAgPHJlY3Qgd2lkdGg9IjUxMiIgaGVpZ2h0PSI1MTIiIHJ4PSIxMTIiIGZpbGw9IiMxNDIxM2QiLz4KICA8cGF0aCBkPSJNMTM4IDExOGgyMzZjMjAgMCAzNiAxNiAzNiAzNnYyNDBjMCAyMC0xNiAzNi0zNiAzNkgxMzhjLTIwIDAtMzYtMTYtMzYtMzZWMTU0YzAtMjAgMTYtMzYgMzYtMzZaIiBmaWxsPSIjZjhmNGU4Ii8+CiAgPHBhdGggZD0iTTE1NCAxODRoMjA0TTE1NCAyNDZoMTMyTTE1NCAzMDhoMTc4IiBzdHJva2U9IiMxNDIxM2QiIHN0cm9rZS13aWR0aD0iMjgiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgogIDxwYXRoIGQ9Ik0zMTYgMjIyIDI2MCAzMzJoNjJsLTIyIDcyIDgyLTEyNGgtNjJsMjgtNThoLTMyWiIgZmlsbD0iI2ZjYTMxMSIvPgogIDxjaXJjbGUgY3g9IjM3OCIgY3k9IjE1MCIgcj0iMzQiIGZpbGw9IiMyYTlkOGYiLz4KPC9zdmc+Cg==" alt="">
         <div>
           <h1>电力交易刷题</h1>
           <p id="metaText">题库加载中</p>
         </div>
       </div>
       <button class="status-pill" id="installButton" hidden>安装</button>
-      <span class="status-pill" id="offlineText">离线可用</span>
+      <span class="status-pill" id="offlineText">在线题库</span>
     </header>
 
     <section class="stats" aria-label="刷题统计">
@@ -517,7 +516,20 @@
     </nav>
   </div>
 
-  <script src="data/questions.js"></script>
+  <script src="data/meta.js"></script>
+  <script>window.QUESTION_PARTS = [];</script>
+  <script src="data/questions-01.js"></script>
+  <script src="data/questions-02.js"></script>
+  <script src="data/questions-03.js"></script>
+  <script src="data/questions-04.js"></script>
+  <script src="data/questions-05.js"></script>
+  <script src="data/questions-06.js"></script>
+  <script src="data/questions-07.js"></script>
+  <script src="data/questions-08.js"></script>
+  <script src="data/questions-09.js"></script>
+  <script src="data/questions-10.js"></script>
+  <script src="data/questions-11.js"></script>
+  <script>window.QUESTION_BANK = { meta: window.QUESTION_META, questions: window.QUESTION_PARTS.flat() };</script>
   <script>
     const STORAGE_KEY = "powerTraderQuizState.v2";
     const bank = window.QUESTION_BANK || { meta: {}, questions: [] };
@@ -803,11 +815,6 @@
     window.addEventListener("online", () => { els.offlineText.textContent = "离线可用"; });
     window.addEventListener("offline", () => { els.offlineText.textContent = "已离线"; });
 
-    if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("./service-worker.js").catch(() => {
-        els.offlineText.textContent = "离线缓存未启用";
-      });
-    }
 
     pickQuestion();
   </script>
