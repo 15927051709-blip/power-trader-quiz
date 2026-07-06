@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="电力交易员刷题">
+  <rect width="512" height="512" rx="112" fill="#14213d"/>
+  <path d="M138 118h236c20 0 36 16 36 36v240c0 20-16 36-36 36H138c-20 0-36-16-36-36V154c0-20 16-36 36-36Z" fill="#f8f4e8"/>
+  <path d="M154 184h204M154 246h132M154 308h178" stroke="#14213d" stroke-width="28" stroke-linecap="round"/>
+  <path d="M316 222 260 332h62l-22 72 82-124h-62l28-58h-32Z" fill="#fca311"/>
+  <circle cx="378" cy="150" r="34" fill="#2a9d8f"/>
+</svg>

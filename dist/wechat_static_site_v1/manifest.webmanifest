@@ -1,0 +1,16 @@
+{
+  "name": "电力交易员高级工刷题",
+  "short_name": "高级工刷题",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f8f4e8",
+  "theme_color": "#14213d",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

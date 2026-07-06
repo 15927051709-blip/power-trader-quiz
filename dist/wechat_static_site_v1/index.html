@@ -1,0 +1,775 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#14213d">
+  <title>电力交易员高级工刷题</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <style>
+    :root {
+      color-scheme: light;
+      --ink: #14213d;
+      --paper: #f8f4e8;
+      --panel: #fffdf6;
+      --line: #d9d1bf;
+      --muted: #6f6a60;
+      --green: #2a9d8f;
+      --amber: #fca311;
+      --red: #d1495b;
+      --blue: #277da1;
+      --shadow: 0 18px 50px rgba(20, 33, 61, .14);
+      font-family: "PingFang SC", "Noto Sans CJK SC", "Microsoft YaHei", sans-serif;
+    }
+
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      background:
+        linear-gradient(90deg, rgba(20, 33, 61, .045) 1px, transparent 1px),
+        linear-gradient(0deg, rgba(20, 33, 61, .035) 1px, transparent 1px),
+        var(--paper);
+      background-size: 22px 22px;
+      color: var(--ink);
+    }
+
+    button, input, select {
+      font: inherit;
+    }
+
+    button {
+      border: 0;
+      cursor: pointer;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .app {
+      width: min(100%, 920px);
+      margin: 0 auto;
+      min-height: 100vh;
+      padding: env(safe-area-inset-top) 14px calc(16px + env(safe-area-inset-bottom));
+    }
+
+    .topbar {
+      position: sticky;
+      top: 0;
+      z-index: 5;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 0 10px;
+      background: linear-gradient(180deg, var(--paper) 78%, rgba(248, 244, 232, 0));
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 0;
+    }
+
+    .brand img {
+      width: 42px;
+      height: 42px;
+      flex: 0 0 auto;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-family: Georgia, "Songti SC", serif;
+      font-size: 20px;
+      line-height: 1.15;
+      letter-spacing: 0;
+    }
+
+    .brand p {
+      margin: 2px 0 0;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 36px;
+      padding: 0 12px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: white;
+      font-size: 13px;
+      white-space: nowrap;
+    }
+
+    .stats {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+      margin: 8px 0 12px;
+    }
+
+    .stat {
+      min-height: 72px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: rgba(255, 253, 246, .86);
+      box-shadow: 0 8px 20px rgba(20, 33, 61, .06);
+    }
+
+    .stat strong {
+      display: block;
+      font-size: 22px;
+      line-height: 1.1;
+    }
+
+    .stat span {
+      display: block;
+      margin-top: 6px;
+      color: var(--muted);
+      font-size: 12px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: var(--panel);
+      box-shadow: var(--shadow);
+    }
+
+    .controls {
+      display: grid;
+      gap: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+
+    .segments {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 6px;
+      padding: 4px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: #ece3cf;
+    }
+
+    .segments button,
+    .filter button,
+    .small-button {
+      min-height: 38px;
+      border-radius: 7px;
+      color: var(--ink);
+      background: transparent;
+      transition: transform .12s ease, background .12s ease, color .12s ease;
+    }
+
+    .segments button.active,
+    .filter button.active {
+      background: var(--ink);
+      color: white;
+    }
+
+    .filter {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 6px;
+    }
+
+    .filter button {
+      border: 1px solid var(--line);
+      background: white;
+      font-size: 13px;
+    }
+
+    .search-row {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      gap: 8px;
+    }
+
+    .search-row input {
+      width: 100%;
+      min-height: 42px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+      padding: 0 12px;
+      outline: none;
+    }
+
+    .small-button {
+      border: 1px solid var(--line);
+      background: white;
+      padding: 0 12px;
+    }
+
+    .question {
+      overflow: hidden;
+    }
+
+    .question-head {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      background: #fff8e6;
+    }
+
+    .tag-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+
+    .tag {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 8px;
+      border-radius: 7px;
+      font-size: 12px;
+      font-weight: 700;
+      background: rgba(42, 157, 143, .12);
+      color: #16675e;
+    }
+
+    .tag.multi { background: rgba(252, 163, 17, .18); color: #8a5600; }
+    .tag.judge { background: rgba(39, 125, 161, .14); color: #17536c; }
+
+    .progress-text {
+      color: var(--muted);
+      font-size: 12px;
+      white-space: nowrap;
+    }
+
+    .stem {
+      padding: 18px 14px 12px;
+      font-size: 20px;
+      line-height: 1.55;
+      font-weight: 800;
+      word-break: break-word;
+    }
+
+    .options {
+      display: grid;
+      gap: 10px;
+      padding: 0 14px 14px;
+    }
+
+    .option {
+      display: grid;
+      grid-template-columns: 36px 1fr;
+      align-items: start;
+      gap: 10px;
+      width: 100%;
+      min-height: 54px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      border-radius: 8px;
+      background: white;
+      color: var(--ink);
+      text-align: left;
+      transition: transform .12s ease, border-color .12s ease, background .12s ease;
+    }
+
+    .option:active,
+    .segments button:active,
+    .filter button:active,
+    .small-button:active,
+    .primary:active,
+    .ghost:active {
+      transform: translateY(1px);
+    }
+
+    .option.selected {
+      border-color: var(--blue);
+      background: rgba(39, 125, 161, .09);
+    }
+
+    .option.correct {
+      border-color: var(--green);
+      background: rgba(42, 157, 143, .13);
+    }
+
+    .option.wrong {
+      border-color: var(--red);
+      background: rgba(209, 73, 91, .10);
+    }
+
+    .letter {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      width: 34px;
+      height: 34px;
+      border-radius: 8px;
+      background: var(--ink);
+      color: white;
+      font-weight: 800;
+    }
+
+    .option-text {
+      padding-top: 5px;
+      line-height: 1.45;
+      word-break: break-word;
+    }
+
+    .feedback {
+      margin: 0 14px 14px;
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--line);
+      background: #fff8e6;
+      line-height: 1.55;
+    }
+
+    .feedback.good {
+      border-color: rgba(42, 157, 143, .45);
+      background: rgba(42, 157, 143, .10);
+    }
+
+    .feedback.bad {
+      border-color: rgba(209, 73, 91, .45);
+      background: rgba(209, 73, 91, .10);
+    }
+
+    .actions {
+      position: static;
+      z-index: 8;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+      margin-top: 12px;
+      padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(248, 244, 232, .94);
+      border-top: 1px solid var(--line);
+      backdrop-filter: blur(12px);
+    }
+
+    .primary,
+    .ghost {
+      min-height: 52px;
+      border-radius: 8px;
+      font-weight: 800;
+    }
+
+    .primary {
+      background: var(--amber);
+      color: #241706;
+    }
+
+    .primary:disabled {
+      opacity: .48;
+      cursor: not-allowed;
+    }
+
+    .ghost {
+      border: 1px solid var(--line);
+      background: white;
+      color: var(--ink);
+    }
+
+    .empty {
+      padding: 28px 18px;
+      text-align: center;
+      line-height: 1.6;
+      color: var(--muted);
+    }
+
+    .drawer {
+      display: none;
+      margin-top: 12px;
+      padding: 12px;
+    }
+
+    .drawer.open {
+      display: block;
+    }
+
+    .drawer h2 {
+      margin: 0 0 8px;
+      font-size: 16px;
+    }
+
+    .drawer p {
+      margin: 8px 0;
+      color: var(--muted);
+      line-height: 1.55;
+      font-size: 14px;
+    }
+
+    @media (min-width: 720px) {
+      .app {
+        padding-left: 24px;
+        padding-right: 24px;
+      }
+
+      .layout {
+        display: grid;
+        grid-template-columns: 300px 1fr;
+        gap: 14px;
+        align-items: start;
+      }
+
+      .controls {
+        position: sticky;
+        top: 74px;
+      }
+
+      .stem {
+        font-size: 24px;
+        padding: 24px 22px 16px;
+      }
+
+      .options {
+        padding: 0 22px 22px;
+      }
+
+      .feedback {
+        margin: 0 22px 22px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header class="topbar">
+      <div class="brand">
+        <img src="icon.svg" alt="">
+        <div>
+          <h1>高级工刷题</h1>
+          <p id="metaText">题库加载中</p>
+        </div>
+      </div>
+      <button class="status-pill" id="installButton" hidden>安装</button>
+      <span class="status-pill" id="offlineText">离线可用</span>
+    </header>
+
+    <section class="stats" aria-label="刷题统计">
+      <div class="stat"><strong id="doneCount">0</strong><span>已答题</span></div>
+      <div class="stat"><strong id="accuracy">0%</strong><span>正确率</span></div>
+      <div class="stat"><strong id="wrongCount">0</strong><span>错题本</span></div>
+    </section>
+
+    <main class="layout">
+      <section class="panel controls" aria-label="练习设置">
+        <div class="segments" role="tablist" aria-label="练习模式">
+          <button data-mode="random" class="active">随机</button>
+          <button data-mode="order">顺序</button>
+          <button data-mode="wrong">错题</button>
+        </div>
+        <div class="filter" aria-label="题型筛选">
+          <button data-filter="all" class="active">全部</button>
+          <button data-filter="单选">单选</button>
+          <button data-filter="多选">多选</button>
+          <button data-filter="判断">判断</button>
+        </div>
+        <div class="search-row">
+          <input id="searchInput" type="search" placeholder="搜索题干关键词">
+          <button class="small-button" id="resetButton">重置</button>
+        </div>
+        <button class="small-button" id="helpButton">查看说明</button>
+      </section>
+
+      <section>
+        <article class="panel question" id="questionCard" aria-live="polite"></article>
+        <aside class="panel drawer" id="helpDrawer">
+          <h2>使用说明</h2>
+          <p>随机适合日常刷题，顺序适合按题库推进，错题模式只抽取答错过的题。</p>
+          <p>多选题可以点多个选项，提交后会按完整答案判定。进度、正确率和错题保存在当前浏览器本地。</p>
+        </aside>
+      </section>
+    </main>
+
+    <nav class="actions" aria-label="答题操作">
+      <button class="ghost" id="skipButton">跳过</button>
+      <button class="primary" id="submitButton" disabled>提交答案</button>
+    </nav>
+  </div>
+
+  <script src="data/questions.js"></script>
+  <script>
+    const STORAGE_KEY = "powerTraderQuizState.v1";
+    const bank = window.QUESTION_BANK || { meta: {}, questions: [] };
+    const questions = bank.questions;
+    const state = {
+      mode: "random",
+      filter: "all",
+      search: "",
+      current: null,
+      selected: new Set(),
+      submitted: false,
+      correct: false,
+      orderIndex: 0,
+      stats: loadStats()
+    };
+
+    const els = {
+      metaText: document.getElementById("metaText"),
+      doneCount: document.getElementById("doneCount"),
+      accuracy: document.getElementById("accuracy"),
+      wrongCount: document.getElementById("wrongCount"),
+      questionCard: document.getElementById("questionCard"),
+      submitButton: document.getElementById("submitButton"),
+      skipButton: document.getElementById("skipButton"),
+      resetButton: document.getElementById("resetButton"),
+      searchInput: document.getElementById("searchInput"),
+      helpButton: document.getElementById("helpButton"),
+      helpDrawer: document.getElementById("helpDrawer"),
+      installButton: document.getElementById("installButton"),
+      offlineText: document.getElementById("offlineText")
+    };
+
+    let deferredInstallPrompt = null;
+
+    function loadStats() {
+      try {
+        const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+        return {
+          answered: Number(saved.answered || 0),
+          correct: Number(saved.correct || 0),
+          wrongIds: Array.isArray(saved.wrongIds) ? saved.wrongIds : [],
+          history: saved.history && typeof saved.history === "object" ? saved.history : {}
+        };
+      } catch {
+        return { answered: 0, correct: 0, wrongIds: [], history: {} };
+      }
+    }
+
+    function saveStats() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state.stats));
+    }
+
+    function filteredQuestions() {
+      const term = state.search.trim();
+      return questions.filter((question) => {
+        const typeOk = state.filter === "all" || question.type === state.filter;
+        const searchOk = !term || question.stem.includes(term);
+        const wrongOk = state.mode !== "wrong" || state.stats.wrongIds.includes(question.id);
+        return typeOk && searchOk && wrongOk;
+      });
+    }
+
+    function pickQuestion() {
+      const pool = filteredQuestions();
+      state.selected = new Set();
+      state.submitted = false;
+      state.correct = false;
+      if (!pool.length) {
+        state.current = null;
+        render();
+        return;
+      }
+
+      if (state.mode === "order") {
+        state.orderIndex = state.orderIndex % pool.length;
+        state.current = pool[state.orderIndex];
+        state.orderIndex += 1;
+      } else {
+        const index = Math.floor(Math.random() * pool.length);
+        state.current = pool[index];
+      }
+      render();
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      document.querySelectorAll("[data-mode]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.mode === mode);
+      });
+      pickQuestion();
+    }
+
+    function setFilter(filter) {
+      state.filter = filter;
+      state.orderIndex = 0;
+      document.querySelectorAll("[data-filter]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.filter === filter);
+      });
+      pickQuestion();
+    }
+
+    function selectOption(label) {
+      if (!state.current || state.submitted) return;
+      if (state.current.type === "多选") {
+        state.selected.has(label) ? state.selected.delete(label) : state.selected.add(label);
+      } else {
+        state.selected = new Set([label]);
+      }
+      render();
+    }
+
+    function sameAnswer(selected, answer) {
+      if (selected.size !== answer.length) return false;
+      return answer.every((item) => selected.has(item));
+    }
+
+    function submitAnswer() {
+      if (!state.current || !state.selected.size || state.submitted) return;
+      const correct = sameAnswer(state.selected, state.current.answer);
+      state.submitted = true;
+      state.correct = correct;
+      state.stats.answered += 1;
+      if (correct) state.stats.correct += 1;
+      state.stats.history[state.current.id] = {
+        selected: Array.from(state.selected),
+        correct,
+        at: new Date().toISOString()
+      };
+      const wrongSet = new Set(state.stats.wrongIds);
+      correct ? wrongSet.delete(state.current.id) : wrongSet.add(state.current.id);
+      state.stats.wrongIds = Array.from(wrongSet);
+      saveStats();
+      render();
+    }
+
+    function resetStats() {
+      if (!confirm("确认清空本机刷题记录和错题本？")) return;
+      state.stats = { answered: 0, correct: 0, wrongIds: [], history: {} };
+      saveStats();
+      pickQuestion();
+    }
+
+    function answerText(question) {
+      if (question.type === "判断") return question.answer.join("");
+      return question.answer.map((label) => {
+        const option = question.options.find((item) => item.label === label);
+        return option ? `${label}. ${option.text}` : label;
+      }).join("；");
+    }
+
+    function renderStats() {
+      const answered = state.stats.answered;
+      els.doneCount.textContent = answered;
+      els.accuracy.textContent = answered ? `${Math.round(state.stats.correct / answered * 100)}%` : "0%";
+      els.wrongCount.textContent = state.stats.wrongIds.length;
+      els.metaText.textContent = `${bank.meta.total || questions.length} 道题 · 单选 ${bank.meta.byType?.单选 || 0} · 多选 ${bank.meta.byType?.多选 || 0} · 判断 ${bank.meta.byType?.判断 || 0}`;
+    }
+
+    function renderQuestion() {
+      const question = state.current;
+      const poolCount = filteredQuestions().length;
+      if (!question) {
+        els.questionCard.innerHTML = `<div class="empty">当前条件下没有题目。可以切回全部题型，或先完成一些错题后再进入错题模式。</div>`;
+        els.submitButton.disabled = true;
+        els.submitButton.textContent = "提交答案";
+        return;
+      }
+
+      const tagClass = question.type === "多选" ? "multi" : question.type === "判断" ? "judge" : "";
+      const optionsHtml = question.options.map((option) => {
+        const selected = state.selected.has(option.label);
+        const isRight = question.answer.includes(option.label);
+        const isWrongPick = state.submitted && selected && !isRight;
+        const classes = [
+          "option",
+          selected ? "selected" : "",
+          state.submitted && isRight ? "correct" : "",
+          isWrongPick ? "wrong" : ""
+        ].filter(Boolean).join(" ");
+        return `
+          <button class="${classes}" data-option="${option.label}" aria-pressed="${selected}">
+            <span class="letter">${option.label}</span>
+            <span class="option-text">${escapeHtml(option.text)}</span>
+          </button>`;
+      }).join("");
+
+      const feedback = state.submitted
+        ? `<div class="feedback ${state.correct ? "good" : "bad"}">
+            <strong>${state.correct ? "答对了" : "答错了"}</strong><br>
+            正确答案：${escapeHtml(answerText(question))}
+          </div>`
+        : "";
+
+      els.questionCard.innerHTML = `
+        <div class="question-head">
+          <div class="tag-row">
+            <span class="tag ${tagClass}">${question.type}</span>
+            <span class="tag">${question.source}</span>
+          </div>
+          <span class="progress-text">${poolCount} 题可练</span>
+        </div>
+        <div class="stem">${escapeHtml(question.stem)}</div>
+        <div class="options">${optionsHtml}</div>
+        ${feedback}`;
+
+      els.questionCard.querySelectorAll("[data-option]").forEach((button) => {
+        button.addEventListener("click", () => selectOption(button.dataset.option));
+      });
+      els.submitButton.disabled = !state.selected.size;
+      els.submitButton.textContent = state.submitted ? "下一题" : "提交答案";
+    }
+
+    function render() {
+      renderStats();
+      renderQuestion();
+    }
+
+    function escapeHtml(text) {
+      return String(text)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    document.querySelectorAll("[data-mode]").forEach((button) => {
+      button.addEventListener("click", () => setMode(button.dataset.mode));
+    });
+
+    document.querySelectorAll("[data-filter]").forEach((button) => {
+      button.addEventListener("click", () => setFilter(button.dataset.filter));
+    });
+
+    els.submitButton.addEventListener("click", () => {
+      if (state.submitted) pickQuestion();
+      else submitAnswer();
+    });
+
+    els.skipButton.addEventListener("click", pickQuestion);
+    els.resetButton.addEventListener("click", resetStats);
+    els.helpButton.addEventListener("click", () => els.helpDrawer.classList.toggle("open"));
+    els.searchInput.addEventListener("input", (event) => {
+      state.search = event.target.value;
+      state.orderIndex = 0;
+      pickQuestion();
+    });
+
+    window.addEventListener("beforeinstallprompt", (event) => {
+      event.preventDefault();
+      deferredInstallPrompt = event;
+      els.installButton.hidden = false;
+    });
+
+    els.installButton.addEventListener("click", async () => {
+      if (!deferredInstallPrompt) return;
+      deferredInstallPrompt.prompt();
+      await deferredInstallPrompt.userChoice;
+      deferredInstallPrompt = null;
+      els.installButton.hidden = true;
+    });
+
+    window.addEventListener("online", () => { els.offlineText.textContent = "离线可用"; });
+    window.addEventListener("offline", () => { els.offlineText.textContent = "已离线"; });
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("./service-worker.js").catch(() => {
+        els.offlineText.textContent = "离线缓存未启用";
+      });
+    }
+
+    pickQuestion();
+  </script>
+</body>
+</html>
