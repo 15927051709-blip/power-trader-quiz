@@ -1,10 +1,23 @@
-const CACHE_NAME = "power-trader-quiz-v3";
+const CACHE_NAME = "power-trader-quiz-v4";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./manifest.webmanifest",
   "./icon.svg",
-  "./data/questions.js"
+  "./quiz-core.js",
+  "./data/meta.js",
+  "./data/questions.js",
+  "./data/questions-01.js",
+  "./data/questions-02.js",
+  "./data/questions-03.js",
+  "./data/questions-04.js",
+  "./data/questions-05.js",
+  "./data/questions-06.js",
+  "./data/questions-07.js",
+  "./data/questions-08.js",
+  "./data/questions-09.js",
+  "./data/questions-10.js",
+  "./data/questions-11.js"
 ];
 
 self.addEventListener("install", (event) => {

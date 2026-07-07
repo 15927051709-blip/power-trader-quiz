@@ -12,7 +12,8 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "index.html"
 QUESTIONS = ROOT / "data" / "questions.js"
 ICON = ROOT / "icon.svg"
-OUTPUT = ROOT / "dist" / "电力交易员高级工技师刷题_单文件版_v3.html"
+CORE = ROOT / "quiz-core.js"
+OUTPUT = ROOT / "dist" / "电力交易员高级工技师刷题_单文件版_v4.html"
 
 
 SCRIPT_BLOCK_RE = re.compile(
@@ -26,6 +27,7 @@ SCRIPT_BLOCK_RE = re.compile(
 def main() -> None:
     html = INDEX.read_text(encoding="utf-8")
     questions = QUESTIONS.read_text(encoding="utf-8").strip()
+    core = CORE.read_text(encoding="utf-8").strip()
     icon = ICON.read_text(encoding="utf-8")
     icon_data = "data:image/svg+xml;base64," + base64.b64encode(icon.encode("utf-8")).decode("ascii")
 
@@ -37,6 +39,7 @@ def main() -> None:
         html = html.replace('  <script src="data/questions.js"></script>', inline_questions)
     else:
         html = SCRIPT_BLOCK_RE.sub("\n" + inline_questions, html)
+    html = html.replace('  <script src="quiz-core.js"></script>', f"  <script>\n    {core}\n  </script>")
 
     service_worker_block = """\n    if ("serviceWorker" in navigator) {\n      navigator.serviceWorker.register("./service-worker.js").catch(() => {});\n    }\n"""
     html = html.replace(service_worker_block, "\n")

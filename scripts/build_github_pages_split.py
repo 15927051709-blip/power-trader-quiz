@@ -13,6 +13,7 @@ ROOT = Path(__file__).resolve().parents[1]
 INDEX = ROOT / "index.html"
 QUESTIONS = ROOT / "data" / "questions.js"
 ICON = ROOT / "icon.svg"
+CORE = ROOT / "quiz-core.js"
 OUTPUT = ROOT / "dist" / "github_pages_split_v1"
 CHUNK_SIZE = 180
 
@@ -69,6 +70,7 @@ def main() -> None:
     data_dir = OUTPUT / "data"
     data_dir.mkdir(parents=True, exist_ok=True)
     (OUTPUT / "index.html").write_text(html, encoding="utf-8")
+    (OUTPUT / "quiz-core.js").write_text(CORE.read_text(encoding="utf-8"), encoding="utf-8")
     (data_dir / "meta.js").write_text(
         "window.QUESTION_META = "
         + json.dumps(meta, ensure_ascii=False, separators=(",", ":"))
