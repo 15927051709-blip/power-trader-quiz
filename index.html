@@ -172,7 +172,7 @@
 
     .segments {
       display: grid;
-      grid-template-columns: repeat(3, 1fr);
+      grid-template-columns: repeat(auto-fit, minmax(58px, 1fr));
       gap: 6px;
       padding: 4px;
       border: 1px solid var(--line);
@@ -397,6 +397,7 @@
 
     .exam-rule,
     .exam-history,
+    .exam-analysis,
     .exam-summary {
       padding: 12px;
       border: 1px solid var(--line);
@@ -409,6 +410,7 @@
 
     .exam-rule strong,
     .exam-history strong,
+    .exam-analysis strong,
     .exam-summary strong {
       display: block;
       margin-bottom: 6px;
@@ -660,6 +662,8 @@
           <button data-mode="random" class="active">随机</button>
           <button data-mode="order">顺序</button>
           <button data-mode="wrong">错题</button>
+          <button data-mode="favorite">收藏</button>
+          <button data-mode="weak">薄弱</button>
         </div>
         <div class="filter" aria-label="题型筛选">
           <button data-filter="all" class="active">全部</button>
@@ -681,7 +685,7 @@
       <section class="panel controls hidden" id="examControls" aria-label="模拟考试设置">
         <div class="exam-rule">
           <strong>模拟考试规则</strong>
-          单选 50 题，每题 1 分；多选 15 题，每题 2 分；判断 20 题，每题 1 分。共 85 题，满分 100 分。
+          单选 50 题，每题 1 分；多选 15 题，每题 2 分；判断 20 题，每题 1 分。共 85 题，满分 100 分，限时 120 分钟。
         </div>
         <div class="exam-source" aria-label="考试题库来源">
           <button data-exam-source="高级工" class="active">高级工</button>
@@ -689,6 +693,7 @@
           <button data-exam-source="技师新增">技师新增</button>
         </div>
         <button class="primary" id="startExamButton">开始模拟考试</button>
+        <div class="exam-analysis" id="examAnalysis"></div>
         <div class="exam-history" id="examHistory"></div>
       </section>
 
@@ -731,7 +736,8 @@
       scoreQuestion,
       buildExamPaper,
       summarizeExam,
-      formatDuration
+      formatDuration,
+      analyzeExamHistory
     } = window.PowerQuizCore;
     const state = {
       view: "practice",
@@ -778,6 +784,8 @@
       examControls: document.getElementById("examControls"),
       startExamButton: document.getElementById("startExamButton"),
       examHistory: document.getElementById("examHistory")
+      ,
+      examAnalysis: document.getElementById("examAnalysis")
     };
 
     function loadStats() {
@@ -787,10 +795,11 @@
           answered: Number(saved.answered || 0),
           correct: Number(saved.correct || 0),
           wrongIds: Array.isArray(saved.wrongIds) ? saved.wrongIds : [],
+          favoriteIds: Array.isArray(saved.favoriteIds) ? saved.favoriteIds : [],
           history: saved.history && typeof saved.history === "object" ? saved.history : {}
         };
       } catch {
-        return { answered: 0, correct: 0, wrongIds: [], history: {} };
+        return { answered: 0, correct: 0, wrongIds: [], favoriteIds: [], history: {} };
       }
     }
 
@@ -818,7 +827,10 @@
         const sourceOk = matchesSource(question, state.source);
         const searchOk = !term || question.stem.includes(term);
         const wrongOk = state.mode !== "wrong" || state.stats.wrongIds.includes(question.id);
-        return typeOk && sourceOk && searchOk && wrongOk;
+        const favoriteOk = state.mode !== "favorite" || state.stats.favoriteIds.includes(question.id);
+        const weakType = getWeakType();
+        const weakOk = state.mode !== "weak" || (weakType && question.type === weakType);
+        return typeOk && sourceOk && searchOk && wrongOk && favoriteOk && weakOk;
       });
     }
 
@@ -857,8 +869,12 @@
 
     function setMode(mode) {
       state.mode = mode;
+      if (mode === "weak") state.filter = "all";
       document.querySelectorAll("[data-mode]").forEach((button) => {
         button.classList.toggle("active", button.dataset.mode === mode);
+      });
+      document.querySelectorAll("[data-filter]").forEach((button) => {
+        button.classList.toggle("active", button.dataset.filter === state.filter);
       });
       pickQuestion();
     }
@@ -945,7 +961,7 @@
 
     function resetStats() {
       if (!confirm("确认清空本机刷题记录和错题本？")) return;
-      state.stats = { answered: 0, correct: 0, wrongIds: [], history: {} };
+      state.stats = { answered: 0, correct: 0, wrongIds: [], favoriteIds: [], history: {} };
       saveStats();
       pickQuestion();
     }
@@ -973,9 +989,14 @@
       examTimer = setInterval(() => {
         if (state.exam.status !== "active" || !state.exam.startedAt) return;
         state.exam.elapsedSeconds = Math.floor((Date.now() - state.exam.startedAt) / 1000);
+        if (state.exam.elapsedSeconds >= EXAM_RULE.durationSeconds) {
+          submitExam(true);
+          alert("考试时间已到，已自动交卷。");
+          return;
+        }
         renderStats();
         const timer = document.getElementById("examTimer");
-        if (timer) timer.textContent = formatDuration(state.exam.elapsedSeconds);
+        if (timer) timer.textContent = formatDuration(EXAM_RULE.durationSeconds - state.exam.elapsedSeconds);
       }, 1000);
     }
 
@@ -1018,16 +1039,34 @@
         duration: state.exam.elapsedSeconds,
         submittedAt: new Date().toISOString()
       };
+      updateWrongBookFromExam(details);
       state.exam.status = "result";
       state.exam.history.unshift({
         source: state.exam.source,
         score: summary.total,
+        byType: summary.byType,
         duration: state.exam.elapsedSeconds,
         at: state.exam.result.submittedAt
       });
       state.exam.history = state.exam.history.slice(0, 10);
       saveExamHistory();
       render();
+    }
+
+    function updateWrongBookFromExam(details) {
+      const wrongSet = new Set(state.stats.wrongIds);
+      details.forEach((item) => {
+        const correct = item.score === item.max;
+        state.stats.history[item.question.id] = {
+          selected: item.selected,
+          correct,
+          at: state.exam.result.submittedAt,
+          source: "exam"
+        };
+        correct ? wrongSet.delete(item.question.id) : wrongSet.add(item.question.id);
+      });
+      state.stats.wrongIds = Array.from(wrongSet);
+      saveStats();
     }
 
     function countExamAnswered() {
@@ -1037,6 +1076,18 @@
     function maxQuestionScore(question) {
       const rule = EXAM_RULE.sections.find((section) => section.type === question.type);
       return rule ? rule.points : 0;
+    }
+
+    function getWeakType() {
+      return analyzeExamHistory(state.exam.history).weakType;
+    }
+
+    function toggleFavorite(question) {
+      const favoriteSet = new Set(state.stats.favoriteIds);
+      favoriteSet.has(question.id) ? favoriteSet.delete(question.id) : favoriteSet.add(question.id);
+      state.stats.favoriteIds = Array.from(favoriteSet);
+      saveStats();
+      render();
     }
 
     function answerText(question) {
@@ -1065,21 +1116,24 @@
       const answered = state.stats.answered;
       els.doneLabel.textContent = "已答题";
       els.accuracyLabel.textContent = "正确率";
-      els.wrongLabel.textContent = "错题本";
+      els.wrongLabel.textContent = state.mode === "favorite" ? "收藏题" : "错题本";
       els.doneCount.textContent = answered;
       els.accuracy.textContent = answered ? `${Math.round(state.stats.correct / answered * 100)}%` : "0%";
-      els.wrongCount.textContent = state.stats.wrongIds.length;
-      els.metaText.textContent = `${sourceLabel(state.source)} · ${countBySource(state.source)} 道去重题`;
+      els.wrongCount.textContent = state.mode === "favorite" ? state.stats.favoriteIds.length : state.stats.wrongIds.length;
+      const weakType = state.mode === "weak" ? getWeakType() : "";
+      els.metaText.textContent = weakType
+        ? `${sourceLabel(state.source)} · 薄弱项：${weakType}`
+        : `${sourceLabel(state.source)} · ${countBySource(state.source)} 道去重题`;
     }
 
     function renderExamStats() {
       els.metaText.textContent = `${sourceLabel(state.exam.source)} · 模拟考试`;
       if (state.exam.status === "active") {
         els.doneLabel.textContent = "已答题";
-        els.accuracyLabel.textContent = "用时";
+        els.accuracyLabel.textContent = "剩余";
         els.wrongLabel.textContent = "标记";
         els.doneCount.textContent = `${countExamAnswered()}/${state.exam.paper.length}`;
-        els.accuracy.textContent = formatDuration(state.exam.elapsedSeconds);
+        els.accuracy.textContent = formatDuration(EXAM_RULE.durationSeconds - state.exam.elapsedSeconds);
         els.wrongCount.textContent = state.exam.marked.length;
         return;
       }
@@ -1119,13 +1173,17 @@
       const question = state.current;
       const poolCount = filteredQuestions().length;
       if (!question) {
-        els.questionCard.innerHTML = `<div class="empty">当前条件下没有题目。可以切回全部题型，或先完成一些错题后再进入错题模式。</div>`;
+        const emptyText = state.mode === "weak"
+          ? "还没有足够的模拟考试记录判断薄弱项。先完成一套模拟考试后再来练薄弱项。"
+          : "当前条件下没有题目。可以切回全部题型，或先完成一些错题/收藏题后再进入对应模式。";
+        els.questionCard.innerHTML = `<div class="empty">${emptyText}</div>`;
         els.submitButton.disabled = true;
         els.submitButton.textContent = "提交答案";
         return;
       }
 
       const tagClass = question.type === "多选" ? "multi" : question.type === "判断" ? "judge" : "";
+      const isFavorite = state.stats.favoriteIds.includes(question.id);
       const optionsHtml = question.options.map((option) => {
         const selected = state.selected.has(option.label);
         const isRight = question.answer.includes(option.label);
@@ -1156,7 +1214,11 @@
             <span class="tag ${tagClass}">${question.type}</span>
             <span class="tag scope">${sourceLabel(state.source)}</span>
           </div>
+          <button class="small-button compact" id="favoriteButton">${isFavorite ? "取消收藏" : "收藏"}</button>
+        </div>
+        <div class="question-head">
           <span class="progress-text">${poolCount} 题可练</span>
+          <span class="progress-text">${state.mode === "weak" ? `薄弱项：${getWeakType()}` : ""}</span>
         </div>
         <div class="stem">${escapeHtml(question.stem)}</div>
         <div class="options">${optionsHtml}</div>
@@ -1165,6 +1227,7 @@
       els.questionCard.querySelectorAll("[data-option]").forEach((button) => {
         button.addEventListener("click", () => selectOption(button.dataset.option));
       });
+      document.getElementById("favoriteButton").addEventListener("click", () => toggleFavorite(question));
       els.submitButton.disabled = !state.selected.size;
       els.submitButton.textContent = state.submitted ? "下一题" : "提交答案";
     }
@@ -1190,7 +1253,7 @@
         <div class="stem">准备开始一套完整模拟考试</div>
         <div class="exam-summary">
           <strong>${counts}</strong>
-          多选题全部选对得 2 分；只选了部分正确选项且没有选错项得 1 分；选了任何错误项不得分。
+          考试时长 120 分钟。多选题全部选对得 2 分；只选了部分正确选项且没有选错项得 1 分；选了任何错误项不得分。
         </div>`;
     }
 
@@ -1228,7 +1291,7 @@
           <button class="small-button compact" id="markExamButton">${isMarked ? "取消标记" : "标记"}</button>
         </div>
         <div class="question-head">
-          <span class="progress-text">用时 <span id="examTimer">${formatDuration(state.exam.elapsedSeconds)}</span></span>
+          <span class="progress-text">剩余 <span id="examTimer">${formatDuration(EXAM_RULE.durationSeconds - state.exam.elapsedSeconds)}</span></span>
           <span class="progress-text">${maxQuestionScore(question)} 分</span>
         </div>
         <div class="stem">${escapeHtml(question.stem)}</div>
@@ -1262,7 +1325,8 @@
             <strong>${item.index + 1}. ${escapeHtml(item.question.stem)}</strong>
             你的答案：${escapeHtml(selectedAnswerText(item.question, item.selected))}<br>
             正确答案：${escapeHtml(answerText(item.question))}<br>
-            得分：${item.score}/${item.max}
+            得分：${item.score}/${item.max}<br>
+            已自动加入错题本
           </div>`).join("")
         : `<div class="review-item"><strong>本次没有扣分题</strong>这套卷子全部拿分。</div>`;
 
@@ -1290,6 +1354,7 @@
     }
 
     function renderExamHistory() {
+      renderExamAnalysis();
       if (!state.exam.history.length) {
         els.examHistory.innerHTML = `<strong>最近成绩</strong>还没有模拟考试记录。`;
         return;
@@ -1300,6 +1365,19 @@
         return `${label} · ${item.source} · ${item.score}分 · ${formatDuration(item.duration)}`;
       }).join("<br>");
       els.examHistory.innerHTML = `<strong>最近成绩</strong>${items}`;
+    }
+
+    function renderExamAnalysis() {
+      const analysis = analyzeExamHistory(state.exam.history);
+      if (!analysis.count) {
+        els.examAnalysis.innerHTML = `<strong>成绩分析</strong>完成模拟考试后显示平均分、最高分、最低分和薄弱题型。`;
+        return;
+      }
+      const typeText = Object.entries(analysis.byType)
+        .filter(([, item]) => item.max > 0)
+        .map(([type, item]) => `${type}${item.percent}%`)
+        .join(" · ");
+      els.examAnalysis.innerHTML = `<strong>成绩分析</strong>近 ${analysis.count} 次：平均 ${analysis.average} 分，最高 ${analysis.best} 分，最低 ${analysis.worst} 分。薄弱项：${analysis.weakType || "暂无"}。<br>${typeText}`;
     }
 
     function render() {

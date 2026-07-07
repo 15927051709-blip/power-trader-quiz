@@ -1,6 +1,7 @@
 (function (global) {
   const EXAM_RULE = {
     totalScore: 100,
+    durationSeconds: 120 * 60,
     sections: [
       { type: "单选", count: 50, points: 1 },
       { type: "多选", count: 15, points: 2 },
@@ -88,6 +89,51 @@
     return `${String(minutes).padStart(2, "0")}:${String(remain).padStart(2, "0")}`;
   }
 
+  function analyzeExamHistory(history) {
+    const records = Array.isArray(history) ? history : [];
+    if (!records.length) {
+      return {
+        count: 0,
+        average: 0,
+        best: 0,
+        worst: 0,
+        weakType: "",
+        byType: {}
+      };
+    }
+
+    const scores = records.map((item) => Number(item.score || 0));
+    const byType = {};
+    EXAM_RULE.sections.forEach((section) => {
+      byType[section.type] = { score: 0, max: 0, percent: 0 };
+    });
+
+    records.forEach((record) => {
+      Object.entries(record.byType || {}).forEach(([type, value]) => {
+        if (!byType[type]) byType[type] = { score: 0, max: 0, percent: 0 };
+        byType[type].score += Number(value.score || 0);
+        byType[type].max += Number(value.max || 0);
+      });
+    });
+
+    Object.values(byType).forEach((item) => {
+      item.percent = item.max ? Math.round(item.score / item.max * 100) : 0;
+    });
+
+    const weakEntry = Object.entries(byType)
+      .filter(([, item]) => item.max > 0)
+      .sort((a, b) => a[1].percent - b[1].percent)[0];
+
+    return {
+      count: records.length,
+      average: Math.round(scores.reduce((sum, score) => sum + score, 0) / records.length),
+      best: Math.max(...scores),
+      worst: Math.min(...scores),
+      weakType: weakEntry ? weakEntry[0] : "",
+      byType
+    };
+  }
+
   const api = {
     EXAM_RULE,
     matchesSource,
@@ -96,7 +142,8 @@
     scoreQuestion,
     buildExamPaper,
     summarizeExam,
-    formatDuration
+    formatDuration,
+    analyzeExamHistory
   };
 
   if (typeof module !== "undefined" && module.exports) module.exports = api;
