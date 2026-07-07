@@ -35,7 +35,7 @@ python3 scripts/build_standalone.py
 1. 打开微信开发者工具。
 2. 选择“导入项目”。
 3. 项目目录选择本仓库下的 `miniprogram/`。
-4. 没有正式 AppID 时，可先使用测试号或游客模式预览。
+4. 没有正式 AppID 时，可以先本地调试；需要真机预览或上传发布时，把自己的 AppID 填到 `miniprogram/project.config.json` 的 `appid` 字段。
 
 小程序版不依赖后端和网络，题库、错题、收藏、模拟考试成绩都保存在微信本地缓存。更新题库或核心规则后，重新运行：
 

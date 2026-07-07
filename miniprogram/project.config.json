@@ -2,13 +2,14 @@
   "description": "电力交易刷题小程序",
   "miniprogramRoot": "./",
   "compileType": "miniprogram",
-  "appid": "touristappid",
+  "appid": "",
   "projectname": "power-trader-quiz",
   "setting": {
     "urlCheck": false,
     "es6": true,
     "enhance": true,
     "postcss": true,
-    "minified": true
+    "minified": true,
+    "minifyWXML": true
   }
 }
