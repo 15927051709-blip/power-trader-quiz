@@ -26,6 +26,23 @@ python3 scripts/build_standalone.py
 
 微信里稳定打开需要 `https://...` 链接。可把 `dist/wechat_static_site_v1.zip` 上传到 Cloudflare Pages、GitHub Pages 或自己的静态网站服务。发布后把生成的 HTTPS 链接发到微信即可。
 
+## 微信小程序版
+
+项目已包含原生微信小程序目录：`miniprogram/`。
+
+使用方式：
+
+1. 打开微信开发者工具。
+2. 选择“导入项目”。
+3. 项目目录选择本仓库下的 `miniprogram/`。
+4. 没有正式 AppID 时，可先使用测试号或游客模式预览。
+
+小程序版不依赖后端和网络，题库、错题、收藏、模拟考试成绩都保存在微信本地缓存。更新题库或核心规则后，重新运行：
+
+```bash
+node scripts/build_miniprogram_data.js
+```
+
 ## GitHub Pages 发布
 
 当前项目根目录就是 GitHub Pages 可发布的静态站点入口：
